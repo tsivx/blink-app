@@ -1,28 +1,37 @@
-import { GeistSans } from 'geist/font/sans'
-import './globals.css'
+import "@/styles/globals.css";
+import { Inter as FontSans } from "next/font/google";
 
-const defaultUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : 'http://localhost:3000'
+import { Navbar } from "@/components/navbar";
+import Providers from "@/components/providers";
+import { Toaster } from "@/components/ui/toaster";
+import { cn } from "@/utils/ui";
 
-export const metadata = {
-  metadataBase: new URL(defaultUrl),
-  title: 'Next.js and Supabase Starter Kit',
-  description: 'The fastest way to build apps with Next.js and Supabase',
-}
+export const fontSans = FontSans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={GeistSans.className}>
-      <body className="bg-background text-foreground">
-        <main className="min-h-screen flex flex-col items-center">
-          {children}
-        </main>
+    <html lang="ru" suppressHydrationWarning>
+      <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased px-4",
+          fontSans.variable
+        )}
+      >
+        <Providers>
+          <div className="min-h-screen py-2">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Toaster />
+          </div>
+        </Providers>
       </body>
     </html>
-  )
+  );
 }
