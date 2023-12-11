@@ -6,10 +6,16 @@ export async function GET(req: NextRequest) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const { data } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
 
-  if (data.session) {
-    return NextResponse.json(data.session.user);
+  if (session) {
+    const { data: user, error } = await supabase.from('profiles').select('*').eq('auth_id', session.user.id).single();
+
+    if (error) {
+      return NextResponse.json(error, { status: 500 });
+    }
+
+    return NextResponse.json(user);
   }
 
   return NextResponse.json({ error: 'Auth needed' }, { status: 401 });

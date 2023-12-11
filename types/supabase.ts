@@ -9,32 +9,6 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
-      auditories: {
-        Row: {
-          college_id: number | null
-          id: number
-          name: string | null
-        }
-        Insert: {
-          college_id?: number | null
-          id?: number
-          name?: string | null
-        }
-        Update: {
-          college_id?: number | null
-          id?: number
-          name?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "auditories_college_id_fkey"
-            columns: ["college_id"]
-            isOneToOne: false
-            referencedRelation: "colleges"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       colleges: {
         Row: {
           id: number
@@ -61,35 +35,6 @@ export interface Database {
           }
         ]
       }
-      groups: {
-        Row: {
-          college_id: number | null
-          course: number | null
-          id: number
-          name: string | null
-        }
-        Insert: {
-          college_id?: number | null
-          course?: number | null
-          id?: number
-          name?: string | null
-        }
-        Update: {
-          college_id?: number | null
-          course?: number | null
-          id?: number
-          name?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "groups_college_id_fkey"
-            columns: ["college_id"]
-            isOneToOne: false
-            referencedRelation: "colleges"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       lessons: {
         Row: {
           auditory_id: number | null
@@ -103,7 +48,7 @@ export interface Database {
           teacher_id: number | null
           time_end: string | null
           time_start: string | null
-          week_id: number | null
+          week: number
         }
         Insert: {
           auditory_id?: number | null
@@ -117,7 +62,7 @@ export interface Database {
           teacher_id?: number | null
           time_end?: string | null
           time_start?: string | null
-          week_id?: number | null
+          week: number
         }
         Update: {
           auditory_id?: number | null
@@ -131,14 +76,14 @@ export interface Database {
           teacher_id?: number | null
           time_end?: string | null
           time_start?: string | null
-          week_id?: number | null
+          week?: number
         }
         Relationships: [
           {
             foreignKeyName: "lessons_auditory_id_fkey"
             columns: ["auditory_id"]
             isOneToOne: false
-            referencedRelation: "auditories"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -152,47 +97,80 @@ export interface Database {
             foreignKeyName: "lessons_group_id_fkey"
             columns: ["group_id"]
             isOneToOne: false
-            referencedRelation: "groups"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "lessons_teacher_id_fkey"
             columns: ["teacher_id"]
             isOneToOne: false
-            referencedRelation: "teachers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lessons_week_id_fkey"
-            columns: ["week_id"]
-            isOneToOne: false
-            referencedRelation: "weeks"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           }
         ]
       }
-      teachers: {
+      lessons_timetable: {
         Row: {
-          college_id: number | null
           id: number
-          name: string | null
-          photo_url: string | null
+          timetable: Json
         }
         Insert: {
-          college_id?: number | null
           id?: number
-          name?: string | null
-          photo_url?: string | null
+          timetable?: Json
         }
         Update: {
-          college_id?: number | null
           id?: number
-          name?: string | null
+          timetable?: Json
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          auth_id: string | null
+          college_id: number
+          created_at: string
+          description: string | null
+          id: number
+          metadata: Json
+          name: string
+          photo_url: string | null
+          type: Database["public"]["Enums"]["profile_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          auth_id?: string | null
+          college_id: number
+          created_at?: string
+          description?: string | null
+          id?: number
+          metadata?: Json
+          name?: string
           photo_url?: string | null
+          type: Database["public"]["Enums"]["profile_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          auth_id?: string | null
+          college_id?: number
+          created_at?: string
+          description?: string | null
+          id?: number
+          metadata?: Json
+          name?: string
+          photo_url?: string | null
+          type?: Database["public"]["Enums"]["profile_type"]
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "teachers_college_id_fkey"
+            foreignKeyName: "profiles_auth_id_fkey"
+            columns: ["auth_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_college_id_fkey"
             columns: ["college_id"]
             isOneToOne: false
             referencedRelation: "colleges"
@@ -226,7 +204,7 @@ export interface Database {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      profile_type: "group" | "teacher" | "auditory" | "student" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never

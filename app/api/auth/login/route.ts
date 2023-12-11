@@ -15,5 +15,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(error, { status: error.status });
   }
 
-  return NextResponse.json(data.user);
+  const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('auth_id', data.user.id).single();
+
+  if (profileError) {
+    return NextResponse.json(profileError, { status: 500 });
+  }
+
+/*   if (!profile.length) {
+    const { data: createdProfile, error: createProfileError } = await supabase.from('profiles').insert({
+      auth_id: data.user.id,
+      name: 'Admin',
+      type: 'admin',
+      college_id: 1
+    }).select();
+
+    if (createProfileError) {
+      return NextResponse.json(createProfileError, { status: 500 });
+    }
+
+    return NextResponse.json(createdProfile);
+  } */
+
+  return NextResponse.json(profile);
 }

@@ -5,15 +5,11 @@ import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-type GroupInsertRow = Database['public']['Tables']['groups']['Insert'];
-type TeacherInsertRow = Database['public']['Tables']['teachers']['Insert'];
-type AuditoryInsertRow = Database['public']['Tables']['auditories']['Insert'];
+type ProfileInsertRow = Database['public']['Tables']['profiles']['Insert'];
 type LessonInsertRow = Database['public']['Tables']['lessons']['Insert'];
 
 interface UpdateCache {
-  groups: { [key: string]: GroupInsertRow };
-  teachers: { [key: string]: TeacherInsertRow };
-  auditories: { [key: string]: AuditoryInsertRow };
+  profiles: { [key: string]: ProfileInsertRow };
   lessons: LessonInsertRow[];
 }
 
@@ -21,52 +17,50 @@ export async function POST(req: NextRequest) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
 
   if (!session) {
-    return NextResponse.json({ error: 'Необходимо зайти в аккаунт диспетчера' }, { status: 401 });
+    return NextResponse.json({ error: 'Требуется авторизация' }, { status: 401 });
   }
 
-  const { data: college, error: getCollegeError } = await supabase
-    .from('colleges')
-    .select('id')
-    .eq('supervisor_id', session.user.id)
-    .single();
+  const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('auth_id', session.user.id).single();
 
-  if (getCollegeError) {
-    return NextResponse.json({ error: 'Не удалось получить данные о колледже' }, { status: 500 });
+  if (profileError) {
+    return NextResponse.json({ error: 'Не удалось получить данные о профиле', details: profileError.message });
   }
 
-  const collegeId = college.id;
+  const query = req.nextUrl.searchParams;
+  const customCollegeId = query.get('tsivxrev_custom_college_id');
+
+  const collegeId = customCollegeId ? customCollegeId : profile.college_id;
   const requestBody = await req.json();
   const timetables = requestBody as AvtorTimetable[];
 
   const cache: UpdateCache = {
-    groups: {},
-    teachers: {},
-    auditories: {},
+    profiles: {},
     lessons: [],
   };
 
-  const { data: teachers } = await supabase.from('teachers').select();
-  const { data: auditories } = await supabase.from('auditories').select(); // college;
-  const { data: groups } = await supabase.from('groups').select();
+  const { data: profiles, error: profilesError } = await supabase.from('profiles').select('*').in('type', ['group', 'teacher', 'auditory']);
 
-  for (const teacher of teachers!) cache.teachers[teacher.name!] = teacher;
-  for (const auditory of auditories!) cache.auditories[auditory.name!] = auditory;
-  for (const group of groups!) cache.groups[group.name!] = group;
+  if (profilesError) {
+    return NextResponse.json({ error: 'Не удалось получить профили', details: profilesError });
+  }
+
+  for (const profile of profiles) {
+    cache.profiles[`${profile.type}:${profile.name}`] = profile;
+  }
 
   for (const { timetable } of timetables) {
     for (const week of timetable) {
       for (const group of week.groups) {
-        const cachedGroup = cache.groups[group.group_name];
+        const cachedGroup = cache.profiles[`group:${group.group_name}`]
 
         if (!cachedGroup || !cachedGroup.id) {
-          cache.groups[group.group_name] = {
+          cache.profiles[`group:${group.group_name}`] = {
             name: group.group_name,
-            course: group.course,
+            type: 'group',
+            metadata: { course: group.course },
             college_id: +collegeId,
           };
         }
@@ -76,22 +70,26 @@ export async function POST(req: NextRequest) {
 
           for (const lesson of day.lessons) {
             for (const teacher of lesson.teachers) {
-              const cachedTeacher = cache.teachers[teacher.teacher_name];
+              const cachedTeacher = cache.profiles[`teacher:${teacher.teacher_name}`]
 
               if (!cachedTeacher || !cachedTeacher.id) {
-                cache.teachers[teacher.teacher_name] = {
+                cache.profiles[`teacher:${teacher.teacher_name}`] = {
                   name: teacher.teacher_name,
+                  type: 'teacher',
+                  metadata: {},
                   college_id: +collegeId,
                 };
               }
             }
 
             for (const auditory of lesson.auditories) {
-              const cachedAuditory = cache.auditories[auditory.auditory_name];
+              const cachedAuditory = cache.profiles[`auditory:${auditory.auditory_name}`]
 
               if (!cachedAuditory || !cachedAuditory.id) {
-                cache.auditories[auditory.auditory_name] = {
+                cache.profiles[`auditory:${auditory.auditory_name}`] = {
                   name: auditory.auditory_name,
+                  type: 'auditory',
+                  metadata: {},
                   college_id: +collegeId,
                 };
               }
@@ -102,59 +100,24 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const notExistGroups = Object.values(cache.groups).filter((i) => !i.id);
-  const notExistTeachers = Object.values(cache.teachers).filter((i) => !i.id);
-  const notExistAuditories = Object.values(cache.auditories).filter((i) => !i.id);
+  const notExistProfiles = Object.values(cache.profiles).filter((profile) => !profile.id);
 
-  if (notExistGroups.length) {
-    const { data: insertedGroups } = await supabase.from('groups').insert(notExistGroups).select().throwOnError();
-    for (const group of insertedGroups!) cache.groups[group.name!] = group;
-  }
-
-  if (notExistTeachers.length) {
-    const { data: insertedTeachers } = await supabase.from('teachers').insert(notExistTeachers).select().throwOnError();
-    for (const teacher of insertedTeachers!) {
-      cache.teachers[teacher.name!] = teacher;
-    }
-  }
-
-  if (notExistAuditories.length) {
-    const { data: insertedAuditories } = await supabase
-      .from('auditories')
-      .insert(notExistAuditories)
-      .select()
-      .throwOnError();
-    for (const auditory of insertedAuditories!) {
-      cache.auditories[auditory.name!] = auditory;
-    }
+  if (notExistProfiles.length) {
+    const { data: insertedProfiles } = await supabase.from('profiles').insert(notExistProfiles).select().throwOnError();
+    for (const profile of insertedProfiles!) cache.profiles[`${profile.type}:${profile.name}`] = profile;
   }
 
   for (const { timetable } of timetables) {
     for (const week of timetable) {
       // remove associated lessons which is not actual with current week replacing
-      const { error: removeError } = await supabase.from('lessons').delete().eq('week_id', week.week_number);
-
-      if (removeError) {
-        console.log('Current week not exist');
-      }
-
-      const { data: newWeek, error } = await supabase
-        .from('weeks')
-        .upsert({
-          date_start: dateToISO(week.date_start),
-          date_end: dateToISO(week.date_end),
-          id: week.week_number,
-        })
-        .select('id')
-        .single();
+      const { error } = await supabase.from('lessons').delete().eq('college_id', collegeId);
 
       if (error) {
-        console.error(error);
-        break;
+        console.log(error);
       }
 
       for (const group of week.groups) {
-        const cachedGroup = cache.groups[group.group_name];
+        const cachedGroup = cache.profiles[`group:${group.group_name}`];
 
         if (!cachedGroup) {
           console.log('no group');
@@ -165,8 +128,8 @@ export async function POST(req: NextRequest) {
           if (!day.lessons) continue;
 
           for (const lesson of day.lessons) {
-            const cachedTeacher = lesson.teachers[0] ? cache.teachers[lesson.teachers[0].teacher_name] : null;
-            const cachedAuditory = lesson.auditories[0] ? cache.auditories[lesson.auditories[0].auditory_name] : null;
+            const cachedTeacher = lesson.teachers[0] ? cache.profiles[`teacher:${lesson.teachers[0].teacher_name}`] : null;
+            const cachedAuditory = lesson.auditories[0] ? cache.profiles[`auditory:${lesson.auditories[0].auditory_name}`] : null;
 
             cache.lessons.push({
               name: lesson.subject,
@@ -178,7 +141,7 @@ export async function POST(req: NextRequest) {
               teacher_id: cachedTeacher ? cachedTeacher.id : null,
               auditory_id: cachedAuditory ? cachedAuditory.id : null,
               group_id: cachedGroup ? cachedGroup.id : null,
-              week_id: newWeek.id,
+              week: week.week_number,
               college_id: +collegeId,
             });
           }
@@ -187,11 +150,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const { data: insertedLessons, error } = await supabase.from('lessons').insert(cache.lessons).select();
+  const { error } = await supabase.from('lessons').insert(cache.lessons);
 
   if (error) {
     return NextResponse.json(error, { status: 500 });
   }
 
-  return NextResponse.json(insertedLessons);
+  return NextResponse.json(true);
 }

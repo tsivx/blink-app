@@ -1,7 +1,7 @@
 'use client';
 
 import { Card } from '@/components/card';
-import { PinnedEntities } from '@/components/card-actions';
+import { PinnedProfileList } from '@/components/profile';
 import { useUser } from '@/hooks/useUser';
 import Link from 'next/link';
 
@@ -11,31 +11,25 @@ export default function Home() {
   return (
     <div className="flex items-center justify-center">
       <div className="flex flex-col gap-2">
-        <PinnedEntities type='teachers' />
+        <PinnedProfileList />
 
-        {user && (
-          <Link href={'/update'}>
-            <Card type={'Диспетчерам'} title="Обновить расписание" />
-          </Link>
-        )}
-
-        <Link href={'/groups'}>
-          <Card type={'Расписание'} title="Группы" />
+        <Link href={'/profiles?type=group'}>
+          <Card caption={'Расписание'} title="Группы" />
         </Link>
-        <Link href={'/teachers'}>
-          <Card type={'Расписание'} title="Преподаватели" />
+        <Link href={'/profiles?type=teacher'}>
+          <Card caption={'Расписание'} title="Преподаватели" />
         </Link>
-        <Link href={'/auditories'}>
-          <Card type={'Расписание'} title="Аудитории" />
+        <Link href={'/profiles?type=auditory'}>
+          <Card caption={'Расписание'} title="Аудитории" />
         </Link>
 
         <div className="grid grid-cols-2 gap-2">
           <Link href={'https://pay.cloudtips.ru/p/6d76a463'}>
-            <Card type={'Обратная связь'} title="Поддержать проект" />
+            <Card caption={'Обратная связь'} title="Поддержать проект" />
           </Link>
 
-          <Link href={'/telegram'}>
-            <Card type={'Обратная связь'} title="Канал в Telegram" />
+          <Link href={'https://t.me/blink_schedule_app'}>
+            <Card caption={'Обратная связь'} title="Канал в Telegram" />
           </Link>
         </div>
       </div>

@@ -1,47 +1,38 @@
-import { ExtendedLessonRow, Weekday } from "@/types";
-import dayjs from "@/utils/dayjs";
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { ExtendedLessonRow, Weekday } from '@/types';
+import dayjs from '@/utils/dayjs';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest) {
+interface GetProfileByIdProps {
+  id: number;
+}
+
+export async function GET(req: NextRequest, ctx: { params: GetProfileByIdProps }) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const searchParams = req.nextUrl.searchParams;
-  const groupId = searchParams.get("group_id");
-  const teacherId = searchParams.get("teacher_id");
-  const auditoryId = searchParams.get("auditory_id");
-  const weekId = searchParams.get("week_id");
-
-  let query = supabase
-    .from("lessons")
-    .select(
-      "*, group:groups (id, name), teacher:teachers (id, name), auditory:auditories (id, name)"
-    );
-
-  if (groupId) {
-    query = query.eq("group_id", groupId);
-  }
-  if (teacherId) {
-    query = query.eq("teacher_id", teacherId);
-  }
-  if (auditoryId) {
-    query = query.eq("auditory_id", auditoryId);
-  }
-  if (weekId) {
-    query = query.eq("week_id", weekId);
-  }
-
-  const { data: lessons, error } = await query.returns<ExtendedLessonRow[]>();
+  const { data: profile, error } = await supabase.from('profiles').select('id, type').eq('id', ctx.params.id).single();
 
   if (error) {
     return NextResponse.json(error, { status: 500 });
   }
 
+  const { data: lessons, error: lessonsError } = await supabase
+    .from('lessons')
+    .select('*, group:group_id (id, name), teacher:teacher_id (id, name), auditory:auditory_id (id, name)')
+    .eq(`${profile.type}_id`, profile.id)
+    .returns<ExtendedLessonRow[]>();
+
+  if (lessonsError) {
+    return NextResponse.json(error, { status: 500 });
+  }
+
+  const { data: lessonsTimetable } = await supabase.from('lessons_timetable').select('*').order('id', { ascending: false }).limit(1).single()
+
   lessons.sort((a, b) => {
-    const dateA = dayjs(a.date!, "YYYY-MM-DD");
-    const dateB = dayjs(b.date!, "YYYY-MM-DD");
+    const dateA = dayjs(a.date!, 'YYYY-MM-DD');
+    const dateB = dayjs(b.date!, 'YYYY-MM-DD');
 
     if (dateA.isSame(dateB)) {
       return a.number! - b.number!;
@@ -52,6 +43,16 @@ export async function GET(req: NextRequest) {
 
   const lessonsByDate: { [key: string]: ExtendedLessonRow[] } = {};
   lessons.forEach((lesson) => {
+    if (lessonsTimetable) {      
+      const timetable = lessonsTimetable.timetable as { [key: string]: { [key: string]: { time_start: string, time_end: string } } }
+
+      const weekday = dayjs(lesson.date, 'YYYY-MM-DD').isoWeekday();
+      const lessonTime = timetable[`${weekday}`][`${lesson.number}`];
+
+      lesson.time_start = lessonTime.time_start;
+      lesson.time_end = lessonTime.time_end;
+    }
+
     if (!lessonsByDate[lesson.date!]) {
       lessonsByDate[lesson.date!] = [];
     }
@@ -59,6 +60,7 @@ export async function GET(req: NextRequest) {
   });
 
   const weekdays: Weekday[] = [];
+
   for (const date in lessonsByDate) {
     const groupedLessons: ExtendedLessonRow[] = [];
     lessonsByDate[date].forEach((lesson) => {
@@ -102,15 +104,15 @@ export async function GET(req: NextRequest) {
     weekdays.sort((a, b) => {
       const dateA = dayjs(a.date);
       const dateB = dayjs(b.date);
-    
+
       // Разница в днях между датами
       const diffA = Math.abs(currentDate.diff(dateA, 'day'));
       const diffB = Math.abs(currentDate.diff(dateB, 'day'));
-    
+
       // Текущий день сверху, остальные идут от дальнего к ближайшему
       if (diffA === 0) return -1;
       if (diffB === 0) return 1;
-    
+
       return diffB - diffA;
     });
   }

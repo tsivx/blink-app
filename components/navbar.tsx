@@ -1,12 +1,13 @@
 'use client';
 
 import { useUser } from '@/hooks/useUser';
-import { ArrowLeft, GraduationCap, LogIn, LogOut } from 'lucide-react';
+import { ArrowLeft, GraduationCap, LogIn, LogOut, UploadCloud } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import LoginDialog from './login-dialog';
 import LogoutDialog from './logout-dialog';
 import { ThemeToggle } from './theme';
 import { Button } from './ui/button';
+import UpdateScheduleDialog from './update-dialog';
 
 export function Navbar() {
   const { user } = useUser();
@@ -35,7 +36,7 @@ export function Navbar() {
 
         <div className="logo flex items-center gap-2">
           <GraduationCap />
-          <div className="title text-lg">Blink: Расписание</div>
+          <div className="title text-lg">Blink</div>
         </div>
       </div>
 
@@ -43,15 +44,23 @@ export function Navbar() {
         <ThemeToggle />
 
         {user ? (
-          <LogoutDialog>
-            <Button variant="ghost" size="icon">
-              <LogOut className='h-5 w-5' />
-            </Button>
-          </LogoutDialog>
+          <>
+            <UpdateScheduleDialog>
+              <Button variant="ghost" size="icon">
+                <UploadCloud className="h-5 w-5" />
+              </Button>
+            </UpdateScheduleDialog>
+
+            <LogoutDialog>
+              <Button variant="ghost" size="icon">
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </LogoutDialog>
+          </>
         ) : (
           <LoginDialog>
             <Button variant="ghost" size="icon">
-              <LogIn className='h-5 w-5' />
+              <LogIn className="h-5 w-5" />
             </Button>
           </LoginDialog>
         )}

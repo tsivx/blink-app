@@ -45,37 +45,26 @@ export type AvtorTimetable = {
   timetable: AvtorWeek[]
 }
 
-export type LessonRow = Database['public']['Tables']['lessons']['Row'];
-export type WeekRow = Database['public']['Tables']['weeks']['Row'];
-export type GroupRow = Database['public']['Tables']['groups']['Row'];
-export type TeacherRow = Database['public']['Tables']['teachers']['Row'];
-export type AuditoryRow = Database['public']['Tables']['auditories']['Row'];
-export type CollegeRow = Database['public']['Tables']['colleges']['Row'];
+export type Weekday = { date: string; lessons: ExtendedLessonRow[] };
 
-export interface ExtendedGroupRow extends GroupRow {
-  college?: CollegeRow; 
-}
-export interface ExtendedTeacherRow extends TeacherRow {
-  college?: CollegeRow; 
-}
-export interface ExtendedAuditoryRow extends AuditoryRow {
-  college?: CollegeRow; 
+export type LessonRow = Database['public']['Tables']['lessons']['Row'];
+export type CollegeRow = Database['public']['Tables']['colleges']['Row'];
+export type _ProfileRow = Database['public']['Tables']['profiles']['Row'];
+
+export interface ProfileRow extends _ProfileRow {
+  pinned?: boolean;
 }
 
 export interface SubgroupItem {
   number?: number,
-  teacher?: TeacherRow,
-  auditory?: AuditoryRow,
-  group?: GroupRow,
+  teacher?: ProfileRow,
+  auditory?: ProfileRow,
+  group?: ProfileRow,
 }
 
 export interface ExtendedLessonRow extends LessonRow {
-  teacher?: TeacherRow,
-  auditory?: AuditoryRow,
-  group?: GroupRow,
+  teacher?: ProfileRow,
+  auditory?: ProfileRow,
+  group?: ProfileRow,
   subgroups?: SubgroupItem[],
 }
-
-export type Weekday = { date: string; lessons: ExtendedLessonRow[] }
-
-export type Entity = GroupRow & TeacherRow & AuditoryRow

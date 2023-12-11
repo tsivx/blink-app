@@ -39,8 +39,7 @@ export default function LoginDialog({ children }: { children: React.ReactNode })
 
       setLoading(false);
       toast({
-        title: 'Привет!',
-        description: `Выполнен вход с аккаунта ${data.email}`,
+        title: `Привет, ${data.name}!`,
       });
 
       setDialogOpen(false);

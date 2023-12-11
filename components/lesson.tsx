@@ -1,9 +1,11 @@
 'use client';
 
-import { ExtendedLessonRow, Weekday } from '@/types';
+import { ExtendedLessonRow, Weekday as IWeekday } from '@/types';
 import dayjs from '@/utils/dayjs';
 import { PartyPopper } from 'lucide-react';
 import Link from 'next/link';
+import useSWR from 'swr';
+import Loader from './loader';
 import Placeholder from './placeholder';
 import { Badge } from './ui/badge';
 
@@ -18,11 +20,16 @@ const lessonNow = (date: string, time_start: string, time_end: string): boolean 
 
 const isToday = (date: string) => dayjs(date, 'YYYY-MM-DD').isToday();
 
-export function Weekdays({ weekdays }: { weekdays: Weekday[] }) {
+export function Weekdays({ profileId }: { profileId: number }) {
+  const { data: weekdays, isLoading, error } = useSWR(`/api/profiles/${profileId}/lessons`);
+
+  if (isLoading) return <Loader />;
+  if (error) return <Placeholder title="Упс" description="Не удалось загрузить занятия, может еще раз?" />;
+
   return (
     <div className="weekdays grid gap-4 lg:grid-cols-3">
       {weekdays.length ? (
-        weekdays.map((weekday) => <Weekday key={weekday.date} weekday={weekday} />)
+        weekdays.map((weekday: IWeekday) => <Weekday key={weekday.date} weekday={weekday} />)
       ) : (
         <Placeholder icon={<PartyPopper />} title="Занятий нет" description="Может, расписание еще не готово" />
       )}
@@ -30,7 +37,7 @@ export function Weekdays({ weekdays }: { weekdays: Weekday[] }) {
   );
 }
 
-export function Weekday({ weekday }: { weekday: Weekday }) {
+export function Weekday({ weekday }: { weekday: IWeekday }) {
   return (
     <div key={weekday.date} className="weekday flex flex-col gap-2">
       <div className="weekday-header flex items-center justify-between">
@@ -85,7 +92,7 @@ export function Lesson({ lesson }: { lesson: ExtendedLessonRow }) {
             <>
               {lesson.group && (
                 <div className="lesson-group">
-                  <Link href={`/groups/${lesson.group.id}`}>
+                  <Link href={`/profiles/${lesson.group.id}`}>
                     <Badge variant="secondary">{lesson.group.name}</Badge>
                   </Link>
                 </div>
@@ -93,7 +100,7 @@ export function Lesson({ lesson }: { lesson: ExtendedLessonRow }) {
 
               {lesson.teacher && (
                 <div className="lesson-teacher">
-                  <Link href={`/teachers/${lesson.teacher.id}`}>
+                  <Link href={`/profiles/${lesson.teacher.id}`}>
                     <Badge variant="secondary">{lesson.teacher.name}</Badge>
                   </Link>
                 </div>
@@ -101,7 +108,7 @@ export function Lesson({ lesson }: { lesson: ExtendedLessonRow }) {
 
               {lesson.auditory && (
                 <div className="lesson-auditory">
-                  <Link href={`/auditories/${lesson.auditory.id}`}>
+                  <Link href={`/profiles/${lesson.auditory.id}`}>
                     <Badge variant="secondary">{lesson.auditory.name}</Badge>
                   </Link>
                 </div>
@@ -118,17 +125,17 @@ export function Lesson({ lesson }: { lesson: ExtendedLessonRow }) {
 
                     <div className="flex gap-1">
                       {subgroup.group && (
-                        <Link href={`/groups/${subgroup.group.id}`}>
+                        <Link href={`/profiles/${subgroup.group.id}`}>
                           <Badge variant="secondary">{subgroup.group.name}</Badge>
                         </Link>
                       )}
                       {subgroup.teacher && (
-                        <Link href={`/teachers/${subgroup.teacher.id}`}>
+                        <Link href={`/profiles/${subgroup.teacher.id}`}>
                           <Badge variant="secondary">{subgroup.teacher.name}</Badge>
                         </Link>
                       )}
                       {subgroup.auditory && (
-                        <Link href={`/auditories/${subgroup.auditory.id}`}>
+                        <Link href={`/profiles/${subgroup.auditory.id}`}>
                           <Badge variant="secondary">{subgroup.auditory.name}</Badge>
                         </Link>
                       )}

@@ -2,66 +2,40 @@ import dayjs from "@/utils/dayjs";
 import axios from "axios";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
+export const getPinnedProfileIds = (cookieStore: ReadonlyRequestCookies): number[] => {
+  const cookie = cookieStore.get('pinned_profiles');
+  const pinnedProfiles = cookie ? (JSON.parse(cookie.value) || []) : [];
 
-export const allowedEntities = ['teachers', 'groups', 'auditories'];
-
-export const entityKeys: { [key: string]: string } = {
-  teachers: 'teacher_id',
-  groups: 'group_id',
-  auditories: 'auditory_id',
+  return pinnedProfiles;
 };
+
+export const pinProfile = (cookieStore: ReadonlyRequestCookies, id: number): number[] => {
+  const cookie = cookieStore.get('pinned_profiles');
+  const pinnedProfiles = cookie ? (JSON.parse(cookie.value) || []) : [];
+
+  if (!pinnedProfiles.includes(id)) {
+    pinnedProfiles.push(id);
+  }
+
+  cookieStore.set('pinned_profiles', JSON.stringify(pinnedProfiles));
+
+  return pinnedProfiles;
+}
+
+export const unpinProfile = (cookieStore: ReadonlyRequestCookies, id: number): number[] => {
+  const cookie = cookieStore.get('pinned_profiles');
+  const pinnedProfiles = cookie ? (JSON.parse(cookie.value) || []) : [];
+
+  const updated = pinnedProfiles.filter((profileId: number) => profileId !== id);
+
+  cookieStore.set('pinned_profiles', JSON.stringify(updated));
+
+  return updated;
+}
 
 export function dateToISO(date: string): string {
   return dayjs(date, 'D-MM-YYYY').format('YYYY-MM-DD');
 }
-
-export const getPinnedEntities = (cookies: ReadonlyRequestCookies, entityType: string): number[] => {
-  const cookie = cookies.get('pinned_' + entityType);
-
-  if (!cookie) {
-    cookies.set(`pinned_` + entityType, JSON.stringify([]));
-    return [];
-  }
-
-  try {
-    const pinnedEntities = JSON.parse(cookie?.value);
-
-    if (pinnedEntities instanceof Array) {
-      return pinnedEntities;
-    } else {
-      cookies.set(`pinned_` + entityType, JSON.stringify([]));
-    }
-
-    return pinnedEntities;
-  } catch {
-    cookies.set(`pinned_` + entityType, JSON.stringify([]));
-    return [];
-  }
-};
-
-export const addPinnedEntity = (cookies: ReadonlyRequestCookies, entityType: string, id: number) => {
-  const pinnedEntities = getPinnedEntities(cookies, entityType);
-
-  if (!pinnedEntities.includes(id)) {
-    pinnedEntities.push(id);
-  }
-
-  cookies.set(`pinned_` + entityType, JSON.stringify(pinnedEntities));
-
-  return pinnedEntities;
-};
-
-export const deletePinnedEntity = (cookies: ReadonlyRequestCookies, entityType: string, id: number) => {
-  let pinnedEntities = getPinnedEntities(cookies, entityType);
-
-  pinnedEntities = pinnedEntities.filter((entityId) => {
-    return entityId !== id
-  })
-
-  cookies.set(`pinned_` + entityType, JSON.stringify(pinnedEntities));
-
-  return pinnedEntities;
-};
 
 export const api = axios.create({
   timeout: 10000,  

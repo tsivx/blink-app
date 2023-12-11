@@ -10,7 +10,7 @@ export default function Placeholder({ icon, title, description }: PlaceholderPro
       {icon && <div className="placeholder-icon">{icon}</div>}
 
       <div className="placeholder-info flex flex-col">
-        <div className="title text-lg">{title}</div>
+        <div className="title text-lg font-bold">{title}</div>
         {description && <div className="title text-muted-foreground">{description}</div>}
       </div>
     </div>
