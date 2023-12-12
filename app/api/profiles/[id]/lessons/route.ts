@@ -97,24 +97,6 @@ export async function GET(req: NextRequest, ctx: { params: GetProfileByIdProps }
     });
 
     weekdays.push({ date, lessons: groupedLessons });
-
-    const currentDate = dayjs();
-
-    // Сортируем массив
-    weekdays.sort((a, b) => {
-      const dateA = dayjs(a.date);
-      const dateB = dayjs(b.date);
-
-      // Разница в днях между датами
-      const diffA = Math.abs(currentDate.diff(dateA, 'day'));
-      const diffB = Math.abs(currentDate.diff(dateB, 'day'));
-
-      // Текущий день сверху, остальные идут от дальнего к ближайшему
-      if (diffA === 0) return -1;
-      if (diffB === 0) return 1;
-
-      return diffB - diffA;
-    });
   }
 
   return NextResponse.json(weekdays);
