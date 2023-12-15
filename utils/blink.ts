@@ -17,7 +17,7 @@ export const pinProfile = (cookieStore: ReadonlyRequestCookies, id: number): num
     pinnedProfiles.push(id);
   }
 
-  cookieStore.set('pinned_profiles', JSON.stringify(pinnedProfiles));
+  cookieStore.set('pinned_profiles', JSON.stringify(pinnedProfiles), { expires: 10 * 365 * 24 * 60 * 60 * 1000 });
 
   return pinnedProfiles;
 }
@@ -28,7 +28,7 @@ export const unpinProfile = (cookieStore: ReadonlyRequestCookies, id: number): n
 
   const updated = pinnedProfiles.filter((profileId: number) => profileId !== id);
 
-  cookieStore.set('pinned_profiles', JSON.stringify(updated));
+  cookieStore.set('pinned_profiles', JSON.stringify(updated), { expires: 10 * 365 * 24 * 60 * 60 * 1000 });
 
   return updated;
 }
