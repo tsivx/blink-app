@@ -28,7 +28,7 @@
     "clsx": "^2.0.0",
     "dayjs": "^1.11.10",
     "geist": "^1.0.0",
-    "lucide-react": "^0.294.0",
+    "lucide-react": "^0.298.0",
     "mitt": "^3.0.1",
     "next": "latest",
     "next-themes": "^0.2.1",
