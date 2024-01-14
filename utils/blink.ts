@@ -43,7 +43,7 @@ export const api = axios.create({
 
 export const isProd = process.env.NODE_ENV === 'production';
 export const protocol = isProd ? 'https://' : 'http://'
-export const SITE_URL = protocol + isProd ? process.env.NEXT_PUBLIC_SITE_URL : 'localhost:3000'
+export const SITE_URL = `${protocol}${isProd ? process.env.NEXT_PUBLIC_SITE_URL : 'localhost:3000'}`
 
 export const fetcher = (url: string) => api.get(url).then(res => res.data)
 
