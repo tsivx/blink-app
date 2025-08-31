@@ -30,7 +30,7 @@
     "geist": "^1.0.0",
     "lucide-react": "^0.294.0",
     "mitt": "^3.0.1",
-    "next": "latest",
+    "next": "14.0.3",
     "next-themes": "^0.2.1",
     "postcss": "8.4.29",
     "react": "18.2.0",
