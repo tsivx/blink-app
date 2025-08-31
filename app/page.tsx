@@ -32,7 +32,7 @@ export default function Home() {
             <Card caption={'Обратная связь'} title="Поддержать проект" />
           </Link>
 
-          <Link href={'https://t.me/blink_schedule_app'}>
+          <Link href={'https://t.me/blinkapp'}>
             <Card caption={'Обратная связь'} title="Канал в Telegram" />
           </Link>
         </div>
