@@ -13,8 +13,8 @@ export default function Home() {
       <div className="flex flex-col gap-2">
         <PinnedProfileList />
 
-        <Link href={'https://t.me/blink_schedule_app'}>
-            <Card caption={'ВАЖНО!'} title="Канал в Telegram" description="Пожалуйста, подпишитесь на канал! Мне необходимо собрать аналитику для последующего обновления (оно очень крутое!)" />
+        <Link href={'https://t.me/blinkapp'}>
+            <Card caption={'ВАЖНО!'} title="Канал в Telegram" description="скоро будет что-то крутое" />
         </Link>
 
         <Link href={'/profiles?type=group'}>
