@@ -29,10 +29,6 @@ export default function ProfileView({ params }: { params: GetProfileByIdProps })
         <CopyProfileLink profile={profile} />
       ]}
     >
-      <Link href={'https://t.me/blinkapp'}>
-        <Card caption={'ВАЖНО!'} title="Подпишитесь на канал в Telegram" description="там безумно важная инфа" />
-      </Link>
-
       <Weekdays profileId={profile.id} />
     </Card>
   );
