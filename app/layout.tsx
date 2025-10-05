@@ -7,7 +7,6 @@ import Providers from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/utils/ui';
 import type { Metadata } from 'next';
-import Script from 'next/script';
 
 export const fontSans = FontSans({
   subsets: ['latin'],
@@ -30,18 +29,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Footer />
             <Toaster />
           </div>
-
-          <div id="yandex_rtb_R-A-8083294-1"></div>
-
-          <Script
-            id="important-script"
-            src="https://yandex.ru/ads/system/context.js"
-            async
-            strategy="beforeInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `window.yaContextCb=window.yaContextCb||[];window.yaContextCb.push((()=>{Ya.Context.AdvManager.render({blockId:"R-A-8083294-1",renderTo:"yandex_rtb_R-A-8083294-1"})}));`,
-            }}
-          ></Script>
         </Providers>
       </body>
     </html>

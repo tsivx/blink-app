@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   const collegeId = customCollegeId ? customCollegeId : profile.college_id;
   const requestBody = await req.json();
   const timetables = requestBody as AvtorTimetable[];
-
+    
   const cache: UpdateCache = {
     profiles: {},
     lessons: [],
