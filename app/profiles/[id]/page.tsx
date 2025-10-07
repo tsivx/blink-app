@@ -29,10 +29,6 @@ export default function ProfileView({ params }: { params: GetProfileByIdProps })
         <CopyProfileLink profile={profile} />
       ]}
     >
-      <Link href={'https://t.me/tsivx'}>
-        <Card caption={'великая просьба'} title="" description="пожалуйста, напишите в личку тг @tsivx (нажмите) если у вас есть не нужный iPhone начиная с 7-го и вы можете его безвозмездно пожертвовать" />
-      </Link>
-
       <Weekdays profileId={profile.id} />
     </Card>
   );
